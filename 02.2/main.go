@@ -6,12 +6,6 @@ import (
 	"strings"
 )
 
-var maxCounts = map[string]int{
-	"red":   12,
-	"green": 13,
-	"blue":  14,
-}
-
 func main() {
 	games := `Game 1: 1 green, 2 blue; 13 red, 2 blue, 3 green; 4 green, 14 red
 	Game 2: 2 blue, 11 green; 4 blue, 12 red, 4 green; 7 red, 1 blue, 9 green; 10 green, 12 red, 6 blue
@@ -119,18 +113,19 @@ func main() {
 	for _, gameString := range strings.Split(games, "\n") {
 		gameStringParts := strings.Split(gameString, ":")
 
-		if isGamePossible(gameStringParts[1]) {
-			gameTitleParts := strings.Split(gameStringParts[0], " ")
-			gameId, _ := strconv.Atoi(gameTitleParts[1])
-			sum += gameId
-		}
+		sum += getGamePower(gameStringParts[1])
 
 	}
 
 	fmt.Println(sum)
 }
 
-func isGamePossible(setsString string) bool {
+func getGamePower(setsString string) int {
+	counts := map[string]int{
+		"green": 0,
+		"red":   0,
+		"blue":  0,
+	}
 	sets := strings.Split(setsString, ";")
 
 	for _, set := range sets {
@@ -139,11 +134,16 @@ func isGamePossible(setsString string) bool {
 			count, _ := strconv.Atoi(cubeCountParts[0])
 			color := strings.Trim(cubeCountParts[1], " ")
 
-			if count > maxCounts[color] {
-				return false
+			if count > counts[color] {
+				counts[color] = count
 			}
 		}
 	}
 
-	return true
+	result := 1
+	for _, count := range counts {
+		result *= count
+	}
+
+	return result
 }
