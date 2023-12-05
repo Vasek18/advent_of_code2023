@@ -21,7 +21,11 @@ func getTable(filePath string) [][]string {
 	input, _ := os.ReadFile(filePath)
 	rows := strings.Split(string(input), "\n")
 	for _, row := range rows {
-		table = append(table, strings.Fields(row))
+		fields := strings.Fields(row)
+		if len(fields) < 3 {
+			continue
+		}
+		table = append(table, fields)
 	}
 
 	return table
@@ -36,7 +40,7 @@ func getCorrespondingKey(externalKey int, table [][]string) int {
 
 		rangeLength, _ := strconv.Atoi(row[2])
 		offset := externalKey - externalKeyStartRange
-		if offset > rangeLength {
+		if offset >= rangeLength {
 			continue
 		}
 
@@ -62,7 +66,8 @@ func solve(seeds []string) int {
 		humidity := getCorrespondingKey(temperature, temperatureToHumidity)
 		location := getCorrespondingKey(humidity, humidityToLocation)
 
-		fmt.Println(location)
+		// fmt.Println(seedId, soil, fertilizer, water, light, temperature, humidity, location)
+
 		if !hasLocation {
 			minLocation = location
 			hasLocation = true
@@ -80,10 +85,10 @@ func main() {
 	seedToSoil = getTable("./05.1/seed_to_soil.txt")
 	soilToFertilizer = getTable("./05.1/soil_to_fertilizer.txt")
 	fertilizerToWater = getTable("./05.1/fertilizer_to_water.txt")
-	waterToLight = getTable("./05.1/seed_to_soil.txt")
+	waterToLight = getTable("./05.1/water_to_light.txt")
 	lightToTemperature = getTable("./05.1/light_to_temperature.txt")
 	temperatureToHumidity = getTable("./05.1/temperature_to_humidity.txt")
-	humidityToLocation = getTable("./05.1/water_to_light.txt")
+	humidityToLocation = getTable("./05.1/humidity_to_location.txt")
 
 	seedsInput, _ := os.ReadFile("./05.1/seeds.txt")
 	seeds := strings.Fields(string(seedsInput))
