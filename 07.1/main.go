@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -12,8 +11,9 @@ import (
 type Hand struct {
 	hand                string
 	combinationStrength float32
-	cardsStrength       int
-	bid                 int
+	// cardsStrength       int
+	formattedCards string
+	bid            int
 }
 
 func solve(hands []Hand) int {
@@ -29,10 +29,10 @@ func solve(hands []Hand) int {
 		if hand1.combinationStrength < hand2.combinationStrength {
 			return true
 		}
-		if hand1.cardsStrength > hand2.cardsStrength {
+		if hand1.formattedCards > hand2.formattedCards {
 			return false
 		}
-		if hand1.cardsStrength < hand2.cardsStrength {
+		if hand1.formattedCards < hand2.formattedCards {
 			return true
 		}
 
@@ -90,37 +90,68 @@ func getCombinationStrength(hand string) float32 {
 	return 1
 }
 
-func getCardsStrength(hand string) int {
-	strength := 0
+// func getCardsStrength(hand string) int {
+// 	strength := 0
 
-	for i, card := range hand {
-		multiplier := int(math.Pow(10, float64(5-i)))
+// 	for i, card := range hand {
+// 		multiplier := int(math.Pow(10, float64(5-i)))
 
+// 		if string(card) == "A" {
+// 			strength += 14 * multiplier
+// 			continue
+// 		}
+// 		if string(card) == "K" {
+// 			strength += 13 * multiplier
+// 			continue
+// 		}
+// 		if string(card) == "Q" {
+// 			strength += 12 * multiplier
+// 			continue
+// 		}
+// 		if string(card) == "J" {
+// 			strength += 11 * multiplier
+// 			continue
+// 		}
+// 		if string(card) == "T" {
+// 			strength += 10 * multiplier
+// 			continue
+// 		}
+
+// 		strength += convertToInt(string(card)) * multiplier
+// 	}
+
+// 	return strength
+// }
+
+func formatCardsForSorting(hand string) string {
+	formattedString := ""
+
+	for _, card := range hand {
 		if string(card) == "A" {
-			strength += 14 * multiplier
+			formattedString += "Z"
 			continue
 		}
 		if string(card) == "K" {
-			strength += 13 * multiplier
+			formattedString += "Y"
 			continue
 		}
 		if string(card) == "Q" {
-			strength += 12 * multiplier
+			formattedString += "X"
 			continue
 		}
 		if string(card) == "J" {
-			strength += 11 * multiplier
+			formattedString += "W"
 			continue
 		}
 		if string(card) == "T" {
-			strength += 10 * multiplier
+			formattedString += "V"
 			continue
 		}
 
-		strength += convertToInt(string(card)) * multiplier
+		formattedString += string(card)
 	}
 
-	return strength
+	return formattedString
 }
 
 func prepareHands(inputStrings []string) []Hand {
@@ -132,8 +163,9 @@ func prepareHands(inputStrings []string) []Hand {
 		hand := Hand{
 			hand:                rawHandParts[0],
 			combinationStrength: getCombinationStrength(rawHandParts[0]),
-			cardsStrength:       getCardsStrength(rawHandParts[0]),
-			bid:                 convertToInt(rawHandParts[1]),
+			// cardsStrength:       getCardsStrength(rawHandParts[0]),
+			formattedCards: formatCardsForSorting(rawHandParts[0]),
+			bid:            convertToInt(rawHandParts[1]),
 		}
 
 		hands = append(hands, hand)
