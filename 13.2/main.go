@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"main.go/utils"
 )
@@ -97,39 +99,60 @@ func filterPairs(pattern []string, pairs []Pair, forRow bool, iterationNumber in
 }
 
 func solve(patterns [][]string) int {
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	ch := make(chan int)
+
 	answer := 0
 
 	for _, pattern := range patterns {
-		columnReflectionPairs := findReflectionCandidates(pattern[0])
-		columnReflectionPairs = filterPairs(pattern, columnReflectionPairs, false, 1)
+		wg.Add(1)
 
-		if len(columnReflectionPairs) > 0 {
-			for _, pair := range columnReflectionPairs {
-				if pair.mistakes == 1 {
-					answer += pair.right
+		go func(pattern []string) {
+			defer wg.Done()
+
+			columnReflectionPairs := findReflectionCandidates(pattern[0])
+			columnReflectionPairs = filterPairs(pattern, columnReflectionPairs, false, 1)
+
+			if len(columnReflectionPairs) > 0 {
+				for _, pair := range columnReflectionPairs {
+					if pair.mistakes == 1 {
+						mu.Lock()
+						answer += pair.right
+						mu.Unlock()
+					}
 				}
 			}
-		}
 
-		rowReflectionPairs := findReflectionCandidates(string(getColumn(pattern, 0)))
-		rowReflectionPairs = filterPairs(pattern, rowReflectionPairs, true, 1)
-		if len(rowReflectionPairs) > 0 {
-			for _, pair := range rowReflectionPairs {
-				if pair.mistakes == 1 {
-					answer += pair.right * 100
+			rowReflectionPairs := findReflectionCandidates(string(getColumn(pattern, 0)))
+			rowReflectionPairs = filterPairs(pattern, rowReflectionPairs, true, 1)
+			if len(rowReflectionPairs) > 0 {
+				for _, pair := range rowReflectionPairs {
+					if pair.mistakes == 1 {
+						mu.Lock()
+						answer += pair.right * 100
+						mu.Unlock()
+					}
 				}
 			}
-		}
+
+			ch <- 1
+		}(pattern)
 	}
 
 	return answer
 }
 
 func main() {
+	start := time.Now()
+
 	input, _ := os.ReadFile("./13.2/input.txt")
 	patterns := readInput(string(input))
 
 	answer := solve(patterns)
 
 	fmt.Println(answer)
+
+	elapsed := time.Since(start)
+	fmt.Printf("Binomial took %s\n", elapsed)
 }
