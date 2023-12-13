@@ -97,7 +97,6 @@ func solve(patterns [][]string) int {
 			for _, pair := range columnReflectionPairs {
 				answer += pair[1]
 			}
-			answer += columnReflectionPairs[len(columnReflectionPairs)-1][1]
 		}
 
 		rowReflectionPairs := findReflectionCandidates(string(getColumn(pattern, 0)))
