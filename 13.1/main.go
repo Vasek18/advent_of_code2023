@@ -61,9 +61,9 @@ func filterPairs(pattern []string, pairs [][]int, forRow bool, iterationNumber i
 		return [][]int{}
 	}
 
-	maxIteration := len(pattern) - 1
+	maxIteration := len(pattern)
 	if forRow {
-		maxIteration = len(pattern[0]) - 1
+		maxIteration = len(pattern[0])
 	}
 	if iterationNumber >= maxIteration {
 		return pairs
@@ -86,32 +86,26 @@ func filterPairs(pattern []string, pairs [][]int, forRow bool, iterationNumber i
 	return filterPairs(pattern, checkedPairs, forRow, iterationNumber+1)
 }
 
-func sliceUnset(slice [][]int, i int) [][]int {
-	if i == len(slice) {
-		slice = slice[:i]
-	} else {
-		slice = append(slice[:i], slice[i+1:]...)
-	}
-
-	return slice
-}
-
 func solve(patterns [][]string) int {
 	answer := 0
 
 	for _, pattern := range patterns {
 		columnReflectionPairs := findReflectionCandidates(pattern[0])
 		columnReflectionPairs = filterPairs(pattern, columnReflectionPairs, false, 1)
+
 		if len(columnReflectionPairs) > 0 {
-			answer += columnReflectionPairs[0][1]
-			continue
+			for _, pair := range columnReflectionPairs {
+				answer += pair[1]
+			}
+			answer += columnReflectionPairs[len(columnReflectionPairs)-1][1]
 		}
 
 		rowReflectionPairs := findReflectionCandidates(string(getColumn(pattern, 0)))
 		rowReflectionPairs = filterPairs(pattern, rowReflectionPairs, true, 1)
 		if len(rowReflectionPairs) > 0 {
-			answer += rowReflectionPairs[0][1] * 100
-			continue
+			for _, pair := range rowReflectionPairs {
+				answer += pair[1] * 100
+			}
 		}
 	}
 
