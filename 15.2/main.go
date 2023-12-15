@@ -66,7 +66,7 @@ func (box Box) updateLens(lensToUpdate Lens) Box {
 func solve(steps []string) int {
 	answer := 0
 
-	boxes := make([]Box, 256)
+	boxes := [256]Box{}
 	for _, step := range steps {
 		lens, boxId, action := parseStep(step)
 
