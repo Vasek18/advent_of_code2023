@@ -1,0 +1,169 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+
+	"main.go/utils"
+)
+
+type Cell struct {
+	s        string
+	lat      int
+	lon      int
+	prevCell *Cell
+}
+
+func readMap(input string) [][]string {
+	var ourMap [][]string
+
+	for _, r := range strings.Split(input, "\n") {
+		ourMap = append(ourMap, strings.Split(r, ""))
+	}
+
+	return ourMap
+}
+
+func getConnectedCells(cell Cell, ourMap [][]string) []Cell {
+	var cells []Cell
+
+	maxLat := len(ourMap[0]) - 1
+	for lat := utils.Max(cell.lat-1, 0); lat <= utils.Min(cell.lat+1, maxLat); lat++ {
+		for lon := utils.Max(cell.lon-1, 0); lon <= utils.Min(cell.lon+1, maxLat); lon++ {
+			char := ourMap[lat][lon]
+			newCell := Cell{char, lat, lon, &cell}
+
+			// top
+			if lon == cell.lon && lat == cell.lat-1 {
+				if char == "|" || char == "F" || char == "7" {
+					cells = append(cells, newCell)
+				}
+			}
+
+			// left
+			if lon == cell.lon-1 && lat == cell.lat {
+				if char == "-" || char == "L" || char == "F" {
+					cells = append(cells, newCell)
+				}
+			}
+
+			// right
+			if lon == cell.lon+1 && lat == cell.lat {
+				if char == "-" || char == "J" || char == "7" {
+					cells = append(cells, newCell)
+				}
+			}
+
+			// bottom
+			if lon == cell.lon && lat == cell.lat+1 {
+				if char == "|" || char == "L" || char == "J" {
+					cells = append(cells, newCell)
+				}
+			}
+		}
+	}
+
+	return cells
+}
+
+func getStartPoint(ourMap [][]string) Cell {
+	for lat, _ := range ourMap {
+		for lon, char := range ourMap[lat] {
+			if char == "S" {
+				return Cell{"S", lat, lon, nil}
+			}
+		}
+	}
+
+	panic("No starting point")
+}
+
+func getNextCell(cell Cell, ourMap [][]string) Cell {
+	var nextLat, nextLon int
+
+	switch cell.s {
+	case "|":
+		if cell.prevCell.lat < cell.lat {
+			nextLat, nextLon = cell.lat+1, cell.lon
+		} else {
+			nextLat, nextLon = cell.lat-1, cell.lon
+		}
+
+		break
+	case "-":
+		if cell.prevCell.lon < cell.lon {
+			nextLat, nextLon = cell.lat, cell.lon+1
+		} else {
+			nextLat, nextLon = cell.lat, cell.lon-1
+		}
+
+		break
+	case "L":
+		if cell.prevCell.lat < cell.lat {
+			nextLat, nextLon = cell.lat, cell.lon+1
+		} else {
+			nextLat, nextLon = cell.lat-1, cell.lon
+		}
+
+		break
+	case "J":
+		if cell.prevCell.lat < cell.lat {
+			nextLat, nextLon = cell.lat, cell.lon-1
+		} else {
+			nextLat, nextLon = cell.lat-1, cell.lon
+		}
+
+		break
+	case "7":
+		if cell.prevCell.lat == cell.lat {
+			nextLat, nextLon = cell.lat+1, cell.lon
+		} else {
+			nextLat, nextLon = cell.lat, cell.lon-1
+		}
+
+		break
+	case "F":
+		if cell.prevCell.lat == cell.lat {
+			nextLat, nextLon = cell.lat+1, cell.lon
+		} else {
+			nextLat, nextLon = cell.lat, cell.lon+1
+		}
+
+		break
+	}
+
+	return Cell{ourMap[nextLat][nextLon], nextLat, nextLon, &cell}
+}
+
+func countLoopDistance(leftCell Cell, rightCell Cell, ourMap [][]string, distance int) int {
+	nextLeftCell := getNextCell(leftCell, ourMap)
+
+	nextRightCell := getNextCell(rightCell, ourMap)
+
+	if nextLeftCell.lat == nextRightCell.lat && nextLeftCell.lon == nextRightCell.lon {
+		return distance + 1
+	}
+
+	return countLoopDistance(nextLeftCell, nextRightCell, ourMap, distance+1)
+}
+
+func solve(ourMap [][]string) int {
+	answer := 0
+
+	startingPoint := getStartPoint(ourMap)
+	startingCells := getConnectedCells(startingPoint, ourMap)
+
+	answer = countLoopDistance(startingCells[0], startingCells[1], ourMap, 1)
+
+	return answer
+}
+
+func main() {
+	input, _ := os.ReadFile("./10.1/input.txt")
+	ourMap := readMap(string(input))
+
+	answer := solve(ourMap)
+
+	fmt.Println(answer)
+}
